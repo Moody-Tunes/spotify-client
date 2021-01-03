@@ -851,6 +851,17 @@ class TestSpotifyClient(object):
             data=None
         )
 
+    def test_add_songs_to_playlist_raises_client_error_on_invalid_batch_size(self, spotify_client):
+        auth_code = 'spotify-auth-id'
+        playlist_id = 'spotify:playlist:id'
+        songs = []
+
+        for i in range(0, 200):
+            songs.append(f'spotify:track:{i}')
+
+        with pytest.raises(ClientException):
+            spotify_client.add_songs_to_playlist(auth_code, playlist_id, songs)
+
     @mock.patch('requests.request')
     def test_delete_songs_from_playlist(self, mock_request, spotify_client):
         auth_code = 'spotify-auth-id'
@@ -874,6 +885,17 @@ class TestSpotifyClient(object):
             json=expected_data,
             data=None
         )
+
+    def test_delete_songs_from_playlist_raises_client_error_on_invalid_batch_size(self, spotify_client):
+        auth_code = 'spotify-auth-id'
+        playlist_id = 'spotify:playlist:id'
+        songs = []
+
+        for i in range(0, 200):
+            songs.append(f'spotify:track:{i}')
+
+        with pytest.raises(ClientException):
+            spotify_client.delete_songs_from_playlist(auth_code, playlist_id, songs)
 
     @mock.patch('requests.request')
     def test_get_user_top_artists(self, mock_request, spotify_client):
