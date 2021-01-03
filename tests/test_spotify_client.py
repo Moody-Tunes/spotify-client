@@ -961,7 +961,7 @@ class TestSpotifyClient(object):
 
     @mock.patch('spotify_client.client.SpotifyClient._get_auth_access_token')
     @mock.patch('requests.request')
-    def test_search(self, mock_request, mock_get_auth_token, spotify_client):
+    def test_search_handles_multiple_types_passed(self, mock_request, mock_get_auth_token, spotify_client):
         mock_get_auth_token.return_value = 'test-auth-code'
         query = 'genre:"hip hop"'
         search_types = ['track', 'artist']
@@ -1038,6 +1038,21 @@ class TestSpotifyClient(object):
             data=None,
             json=None
         )
+
+    def test_search_raises_client_exception_if_invalid_limit_passed(self, spotify_client):
+        query = 'genre:"hip hop"'
+        search_types = 'track'
+        limit = 100
+
+        with pytest.raises(ClientException):
+            spotify_client.search(query, search_types, limit)
+
+    def test_search_raises_client_exception_if_invalid_search_type_passed(self, spotify_client):
+        query = 'genre:"hip hop"'
+        search_types = 'invalid-type'
+
+        with pytest.raises(ClientException):
+            spotify_client.search(query, search_types)
 
     @mock.patch('requests.request')
     def test_get_all_songs_from_playlist_with_no_pagination(self, mock_request, spotify_client):
@@ -1183,21 +1198,6 @@ class TestSpotifyClient(object):
             data=None,
             json=None
         )
-
-    def test_search_raises_client_exception_if_invalid_limit_passed(self, spotify_client):
-        query = 'genre:"hip hop"'
-        search_types = 'track'
-        limit = 100
-
-        with pytest.raises(ClientException):
-            spotify_client.search(query, search_types, limit)
-
-    def test_search_raises_client_exception_if_invalid_search_type_passed(self, spotify_client):
-        query = 'genre:"hip hop"'
-        search_types = 'invalid-type'
-
-        with pytest.raises(ClientException):
-            spotify_client.search(query, search_types)
 
     def test_get_code_from_spotify_uri(self, spotify_client):
         song_code = 'spotify:track:19p0PEnGr6XtRqCYEI8Ucc'
