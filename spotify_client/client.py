@@ -24,7 +24,7 @@ class SpotifyClient(object):
     :ivar identifier: Identifier to include in log messages for identifying requests
     """
 
-    BATCH_SIZE = 100
+    PLAYLIST_BATCH_SIZE_LIMIT = 100
     MAX_SEARCH_SIZE = 50
     DEFAULT_RECENTLY_PLAYED_TRACKS_LIMIT = 30
     SEARCH_TYPE_OPTIONS = ['album', 'artist', 'playlist', 'track', 'show', 'episode']
@@ -283,7 +283,7 @@ class SpotifyClient(object):
 
         :return: (list[list]) Original list of tracks, batched into lists of `batch_size`
         """
-        batch_size = batch_size or self.BATCH_SIZE
+        batch_size = batch_size or self.PLAYLIST_BATCH_SIZE_LIMIT
 
         return [tracks[idx:idx + batch_size] for idx in range(0, len(tracks), batch_size)]
 
@@ -597,6 +597,12 @@ class SpotifyClient(object):
         :param playlist_id: (str) Spotify playlist ID to add songs to
         :param songs: (list) Collection of Spotify track URIs to add to playlist
         """
+        if len(songs) > self.PLAYLIST_BATCH_SIZE_LIMIT:
+            raise ClientException(
+                f'Invalid number of songs to add to playlist; \
+                Must be equal to or less than {self.PLAYLIST_BATCH_SIZE_LIMIT}'
+            )
+
         url = '{api_url}/playlists/{playlist_id}/tracks'.format(
             api_url=self.API_URL,
             playlist_id=playlist_id
@@ -616,6 +622,12 @@ class SpotifyClient(object):
         :param playlist_id: (str) Spotify playlist ID to remove songs from
         :param songs: (list) Collection of Spotify track URIs to remove from playlist
         """
+        if len(songs) > self.PLAYLIST_BATCH_SIZE_LIMIT:
+            raise ClientException(
+                f'Invalid number of songs to delete from playlist; \
+                Must be equal to or less than {self.PLAYLIST_BATCH_SIZE_LIMIT}'
+            )
+
         url = '{api_url}/playlists/{playlist_id}/tracks'.format(
             api_url=self.API_URL,
             playlist_id=playlist_id
