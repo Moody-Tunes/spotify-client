@@ -1221,6 +1221,54 @@ class TestSpotifyClient(object):
             json=None
         )
 
+    @mock.patch('spotify_client.client.SpotifyClient._get_auth_access_token')
+    @mock.patch('requests.request')
+    def test_get_recommendations(self, mock_request, mock_get_auth_token, spotify_client):
+        mock_get_auth_token.return_value = 'test-auth-code'
+        target = 'valence'
+        min_value = 0.25
+        max_value = 0.5
+        seed_tracks = ['test_code_1', 'test_code_2']
+        limit = 5
+
+        expected_headers = {'Authorization': 'Bearer test-auth-code'}
+        expected_params = {
+            'min_valence': min_value,
+            'max_valence': max_value,
+            'seed_tracks': seed_tracks,
+            'limit': limit
+        }
+
+        spotify_client.get_recommendations(target, min_value, max_value, seed_tracks, limit)
+
+        mock_request.assert_called_once_with(
+            'GET',
+            'https://api.spotify.com/v1/recommendations',
+            params=expected_params,
+            headers=expected_headers,
+            data=None,
+            json=None
+        )
+
+    @mock.patch('requests.request')
+    def test_add_track_to_saved_songs(self, mock_request, spotify_client):
+        auth_code = 'test-user-auth-code'
+        song_uri = 'test-song-code'
+
+        expected_headers = {'Authorization': f'Bearer {auth_code}'}
+        expected_params = {'ids': song_uri}
+
+        spotify_client.add_track_to_saved_songs(auth_code, song_uri)
+
+        mock_request.assert_called_once_with(
+            'PUT',
+            'https://api.spotify.com/v1/me/tracks',
+            params=expected_params,
+            headers=expected_headers,
+            json=None,
+            data=None
+        )
+
     def test_get_code_from_spotify_uri(self, spotify_client):
         song_code = 'spotify:track:19p0PEnGr6XtRqCYEI8Ucc'
         expected_code = '19p0PEnGr6XtRqCYEI8Ucc'

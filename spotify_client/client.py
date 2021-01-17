@@ -767,3 +767,49 @@ class SpotifyClient(object):
             headers=headers,
             params=params
         )
+
+    def get_recommendations(
+            self,
+            target: str,
+            min_value: float,
+            max_value: float,
+            seed_tracks: List[str],
+            limit: int
+    ):
+        """
+        Make a request to get recommendations for the target values based on the tracks supplied
+        as the seed entity batch. This will return songs from the Spotify API whose attributes
+        most closely match the seed tracks attributes for the given target
+
+        :param target: (str) Spotify attribute value to use in recommendation query
+        :param min_value: (float) Minimum target value to use in recommendation query
+        :param max_value: (float) Maximum target value to use in recommendation query
+        :param seed_tracks: (List[str]) List of Spotify song ids to use as entity batch
+        :param limit: (int) Max number of results to return from recommendation query
+
+        :return: (dict) Recommendations object from Spotify API
+        """
+        return self._make_spotify_request(
+            'GET',
+            f'{self.API_URL}/recommendations',
+            params={
+                f'min_{target}': min_value,
+                f'max_{target}': max_value,
+                'seed_tracks': seed_tracks,
+                'limit': limit
+            }
+        )
+
+    def add_track_to_saved_songs(self, auth_code: str, song_uri: str):
+        """
+        Add a Spotify song to a users saved songs library
+
+        :param auth_code: (str) Access token for user from Spotify
+        :param song_uri: (str) Spotify URI code for song to save
+        """
+        return self._make_spotify_request(
+            'PUT',
+            f'{self.API_URL}/me/tracks',
+            params={'ids': song_uri},
+            headers={'Authorization': f'Bearer {auth_code}'}
+        )
