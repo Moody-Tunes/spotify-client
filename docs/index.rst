@@ -6,19 +6,12 @@
 Welcome to spotify-client's documentation!
 ==========================================
 
+Contents
+=================
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
-.. automodule:: spotify_client
-   :members:
-
-SpotifyClient
-==================
-.. autoclass:: SpotifyClient
-   :members:
-
-Config
-==================
-.. autoclass:: Config
-   :members:
+   usage
+   spotify_client
+   config

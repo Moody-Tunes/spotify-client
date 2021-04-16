@@ -112,7 +112,7 @@ class SpotifyClient(object):
         :param json: (dict) JSON data to send in request
         :param headers: (dict) Headers to include in request
 
-        :return (dict) Response content
+        :return: (dict) Response content
 
         :raises: `SpotifyException` if request was unsuccessful
         :raises: `ClientException` if unexpected error encountered
@@ -330,11 +330,13 @@ class SpotifyClient(object):
         """
         Get a number of songs randomly from the given playlist.
         List of songs is shuffled and the number of desired tracks are returned.
+
         :param playlist: (dict) Mapping of values needed to retrieve playlist tracks
         :param num_songs: (int) Number of songs to return from this playlist
         :param allow_explicit: (bool) Flag to indicate whether or not to return explicit songs (default False)
 
         :return: (list[dict]) Song mappings from the given playlist
+
             - name (str): Name of the song
             - artist (str): Name of the artist
             - code (str): Spotify ID of the song
@@ -690,12 +692,12 @@ class SpotifyClient(object):
         Query the API for resources that match a given query.
 
         :param query: (str) Query to send to the endpoint
-        :param search_types: (str | list) Single or multiple item types to search across. Must be one of
-        [album, artist, playlist, track, show, episode]
+        :param search_types: (str | list) Single or multiple item types to search across. Must be one of album, \
+        artist, playlist, track, show, episode.
         :param limit: (int) Maximum number of resources to return. Default to max of 50 resources
 
-        :return: (dict) Response from API.
-        See https://developer.spotify.com/documentation/web-api/reference/search/search/#fields-reference for full
+        :return: (dict) Response from API. \
+        See https://developer.spotify.com/documentation/web-api/reference/search/search/#fields-reference for full \
         details.
         """
         url = '{api_url}/search'.format(api_url=self.API_URL)
