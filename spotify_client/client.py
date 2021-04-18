@@ -11,6 +11,7 @@ import requests
 
 from .config import Config
 from .exceptions import ClientException, ImproperlyConfigured, SpotifyException
+from .models import Playlist, Song
 
 
 logger = logging.getLogger(__name__)
@@ -308,17 +309,14 @@ class SpotifyClient(object):
 
         return [tracks[idx:idx + batch_size] for idx in range(0, len(tracks), batch_size)]
 
-    def get_playlists_for_category(self, category: str, num_playlists: int) -> List[dict]:
+    def get_playlists_for_category(self, category: str, num_playlists: int) -> List[Playlist]:
         """
         Get a number of playlists from Spotify for a given category
 
         :param category: (str) Category ID of a genre in Spotify
         :param num_playlists: (int) Number of playlists to return
 
-        :return: (list[dict]) Playlist mappings for the given category
-            - name (str): Name of the playlist
-            - uri (str): Spotify ID for the playlist
-            - user (str): Spotify ID for the playlist owner
+        :return: (list[Playlist]) Playlist objects for the given category
         """
         url = '{api_url}/browse/categories/{category_id}/playlists'.format(
             api_url=self.API_URL,
@@ -334,11 +332,11 @@ class SpotifyClient(object):
 
         retrieved_playlists = []
         for playlist in response['playlists']['items']:
-            payload = {
-                'name': playlist['name'].encode('ascii', 'ignore'),
-                'uri': playlist['id'],
-                'user': playlist['owner']['id']
-            }
+            payload = Playlist(
+                name=playlist['name'].encode('ascii', 'ignore'),
+                uri=playlist['id'],
+                user=playlist['owner']['id']
+            )
 
             retrieved_playlists.append(payload)
 
@@ -347,25 +345,21 @@ class SpotifyClient(object):
 
         return retrieved_playlists
 
-    def get_songs_from_playlist(self, playlist: dict, num_songs: int, allow_explicit: bool = False) -> List[dict]:
+    def get_songs_from_playlist(self, playlist: Playlist, num_songs: int, allow_explicit: bool = False) -> List[Song]:
         """
         Get a number of songs randomly from the given playlist.
         List of songs is shuffled and the number of desired tracks are returned.
 
-        :param playlist: (dict) Mapping of values needed to retrieve playlist tracks
+        :param playlist: (Playlist) Playlist object for storing Spotify playlist metadata
         :param num_songs: (int) Number of songs to return from this playlist
         :param allow_explicit: (bool) Flag to indicate whether or not to return explicit songs (default False)
 
-        :return: (list[dict]) Song mappings from the given playlist
-
-            - name (str): Name of the song
-            - artist (str): Name of the artist
-            - code (str): Spotify ID of the song
+        :return: (list[Song]) Song mappings from the given playlist
         """
         url = '{api_url}/users/{user_id}/playlists/{playlist_id}'.format(
             api_url=self.API_URL,
-            user_id=playlist['user'],
-            playlist_id=playlist['uri']
+            user_id=playlist.user,
+            playlist_id=playlist.uri
         )
 
         params = {'fields': 'tracks(items(track(id,uri,name,artists,explicit)))'}
@@ -399,11 +393,11 @@ class SpotifyClient(object):
             if not allow_explicit and is_explicit:
                 continue
 
-            payload = {
-                'name': track['track']['name'],
-                'artist': track['track']['artists'][0]['name'],
-                'code': uri
-            }
+            payload = Song(
+                name=track['track']['name'],
+                artist=track['track']['artists'][0]['name'],
+                code=uri
+            )
 
             retrieved_tracks.append(payload)
             self.seen_songs.append(uri)
@@ -414,36 +408,36 @@ class SpotifyClient(object):
 
         return retrieved_tracks
 
-    def get_audio_features_for_tracks(self, tracks: List[dict]) -> List[dict]:
+    def get_audio_features_for_songs(self, songs: List[Song]) -> List[Song]:
         """
         Get audio features (attributes we use for determining song emotion) for a number of tracks. Will update the
-        tracks in place, each track in the list is a dictionary of values needed to create a Song object. This method
+        songs in place, each songs in the list is a `Song` object of values needed to create a Song object. This method
         returns the list of tracks updated with the tracks emotion attribute values.
 
-        :param tracks: (list[dict]) Song mappings
+        :param songs: (list[Song]) Song mappings
 
-        :return: (list[dict]) Song mappings + (energy, valence, danceability)
+        :return: (list[Song])
         """
-        # Need to batch tracks as Spotify limits the number of tracks sent in one request
-        batched_tracks = self.batch_tracks(tracks)
+        # Need to batch songs as Spotify limits the number of songs sent in one request
+        batched_tracks = self.batch_tracks(songs)
 
         for batch in batched_tracks:
             url = '{api_url}/audio-features'.format(api_url=self.API_URL)
 
             # Construct query params list from track ids in batch
             # Strip spotify:track: from the uri (Spotify just wants the id)
-            track_ids = [self.get_code_from_spotify_uri(track['code']) for track in batch]
-            params = {'ids': ','.join([track_id for track_id in track_ids])}
+            song_codes = [self.get_code_from_spotify_uri(song.code) for song in batch]
+            params = {'ids': ','.join([song_code for song_code in song_codes])}
 
             response = self._make_spotify_request('GET', url, params=params)
 
             # Response is returned in the order requested (req:[1,2,3] -> res:[1,2,3])
             # If an object is not found, a null value is returned in the appropriate position
-            for track, track_data in zip(batch, response['audio_features']):
-                if track_data:
-                    valence = track_data.get('valence')
-                    energy = track_data.get('energy')
-                    danceability = track_data.get('danceability')
+            for song, song_data in zip(batch, response['audio_features']):
+                if song_data:
+                    valence = song_data.get('valence')
+                    energy = song_data.get('energy')
+                    danceability = song_data.get('danceability')
 
                     # Skip tracks that are missing any of the attributes we're looking for
                     # Allow zero values for attributes because some tracks could have a value
@@ -451,13 +445,13 @@ class SpotifyClient(object):
                     if not all([attr is not None for attr in [valence, energy, danceability]]):
                         continue
 
-                    track.update({
-                        'valence': valence,
-                        'energy': energy,
-                        'danceability': danceability
-                    })
+                    song.update_attribute_values(
+                        valence=valence,
+                        energy=energy,
+                        danceability=danceability,
+                    )
 
-        return tracks
+        return songs
 
     def build_spotify_oauth_confirm_link(self, state: str, scopes: List[str], redirect_url: str) -> str:
         """
