@@ -1,6 +1,7 @@
 import copy
 import logging
 import random
+import time
 from base64 import b64encode
 from datetime import datetime, timedelta
 from typing import List, Union
@@ -144,6 +145,8 @@ class SpotifyClient(object):
         )
 
         try:
+            time_start = time.clock()
+
             response = requests.request(
                 method,
                 url,
@@ -153,16 +156,28 @@ class SpotifyClient(object):
                 headers=headers
             )
 
+            time_elapsed = time.clock() - time_start
+
             response.raise_for_status()
 
             if response.text:
                 response = response.json()
 
-            self._log(logging.INFO, 'Successful request made to {}.'.format(url))
+            self._log(
+                logging.INFO,
+                'Successful request made to {}.'.format(url),
+                extra={
+                    'time_elapsed': time_elapsed
+                },
+            )
+
             self._log(
                 logging.DEBUG,
                 'Successful request made to {}.'.format(url),
-                extra={'response_data': copy.deepcopy(response)}
+                extra={
+                    'response_data': copy.deepcopy(response),
+                    'time_elapsed': time_elapsed
+                }
             )
 
             return response
