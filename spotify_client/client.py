@@ -145,7 +145,7 @@ class SpotifyClient(object):
         )
 
         try:
-            time_start = time.clock()
+            time_start = time.time()
 
             response = requests.request(
                 method,
@@ -156,7 +156,7 @@ class SpotifyClient(object):
                 headers=headers
             )
 
-            time_elapsed = time.clock() - time_start
+            time_elapsed = time.time() - time_start
 
             response.raise_for_status()
 
