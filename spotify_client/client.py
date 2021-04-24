@@ -144,7 +144,8 @@ class SpotifyClient(object):
                 'params': logging_params,
                 'data': logging_data,
                 'json': logging_json,
-                'headers': logging_headers
+                'headers': logging_headers,
+                'timeout_value': self.timeout_value,
             }
         )
 
