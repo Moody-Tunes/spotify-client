@@ -25,6 +25,8 @@ class SpotifyClient(object):
     :ivar identifier: Identifier to include in log messages for identifying requests
     """
 
+    DEFAULT_TIMEOUT_VALUE = 3  # In seconds
+
     PLAYLIST_BATCH_SIZE_LIMIT = 100
     MAX_SEARCH_SIZE = 50
     DEFAULT_RECENTLY_PLAYED_TRACKS_LIMIT = 30
@@ -46,6 +48,8 @@ class SpotifyClient(object):
                 'Missing either client_id or secret_key variable. '
                 'Please set these variables either in the Config class or as instance arguments'
             )
+
+        self.timeout_value = Config.TIMEOUT_VALUE or self.DEFAULT_TIMEOUT_VALUE
 
         self.fingerprint = identifier
 
@@ -140,7 +144,8 @@ class SpotifyClient(object):
                 'params': logging_params,
                 'data': logging_data,
                 'json': logging_json,
-                'headers': logging_headers
+                'headers': logging_headers,
+                'timeout_value': self.timeout_value,
             }
         )
 
@@ -153,7 +158,8 @@ class SpotifyClient(object):
                 params=params,
                 data=data,
                 json=json,
-                headers=headers
+                headers=headers,
+                timeout=self.timeout_value,
             )
 
             time_elapsed = time.time() - time_start
