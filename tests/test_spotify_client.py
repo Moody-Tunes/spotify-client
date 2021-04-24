@@ -102,7 +102,8 @@ class TestSpotifyClient(object):
             data=expected_request_data,
             headers=expected_headers,
             params=None,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
         assert auth == auth_code
@@ -176,10 +177,49 @@ class TestSpotifyClient(object):
             params=dummy_params,
             data=dummy_data,
             headers={'Authorization': 'Bearer {}'.format(auth_code)},
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
         assert resp == dummy_response
+
+    @mock.patch('requests.request')
+    @mock.patch('spotify_client.client.SpotifyClient._get_auth_access_token')
+    def test_make_spotify_request_with_config_timeout_uses_timeout_value(self, mock_auth, mock_request, spotify_client):
+        config_client_id = 'config-client-id'
+        config_secret_key = 'config-secret-key'
+        timeout_value = 5
+        Config.configure(config_client_id, config_secret_key, timeout_value)
+
+        client = SpotifyClient()
+
+        auth_code = 'test-auth-code'
+        dummy_response = {'status': 200, 'content': 'OK'}
+        dummy_params = {'query': 'param'}
+        dummy_data = {'key': 'value'}
+
+        mock_response = mock.Mock()
+        mock_response.raise_for_status.side_effect = None
+        mock_response.json.return_value = dummy_response
+
+        mock_auth.return_value = auth_code
+        mock_request.return_value = mock_response
+
+        resp = client._make_spotify_request('GET', '/dummy_endpoint', data=dummy_data, params=dummy_params)
+
+        mock_request.assert_called_with(
+            'GET',
+            '/dummy_endpoint',
+            params=dummy_params,
+            data=dummy_data,
+            headers={'Authorization': 'Bearer {}'.format(auth_code)},
+            json=None,
+            timeout=timeout_value,
+        )
+
+        assert resp == dummy_response
+
+        Config.clear_config()
 
     @mock.patch('requests.request')
     def test_make_spotify_request_uses_headers_if_passed(self, mock_request, spotify_client):
@@ -207,7 +247,8 @@ class TestSpotifyClient(object):
             params=dummy_params,
             data=dummy_data,
             headers=dummy_headers,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
         assert resp == dummy_response
@@ -685,7 +726,8 @@ class TestSpotifyClient(object):
             params=None,
             data=expected_request_data,
             headers=expected_headers,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
         assert user_tokens == expected_response_data
@@ -711,7 +753,8 @@ class TestSpotifyClient(object):
             params=None,
             headers=expected_headers,
             data=request_data,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
         assert access_token == expected_response_data['access_token']
@@ -736,7 +779,8 @@ class TestSpotifyClient(object):
             headers=expected_headers,
             params=None,
             data=None,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
         assert profile_data == mock_profile_data
@@ -791,7 +835,8 @@ class TestSpotifyClient(object):
             params=None,
             headers=expected_headers,
             data=None,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
         assert resp == response_data
@@ -822,7 +867,8 @@ class TestSpotifyClient(object):
             params=None,
             headers=expected_headers,
             json=expected_data,
-            data=None
+            data=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
         assert retrieved_playlist_id == playlist_id
@@ -848,7 +894,8 @@ class TestSpotifyClient(object):
             params=None,
             headers=expected_headers,
             json=expected_data,
-            data=None
+            data=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
     def test_add_songs_to_playlist_raises_client_error_on_invalid_batch_size(self, spotify_client):
@@ -883,7 +930,8 @@ class TestSpotifyClient(object):
             params=None,
             headers=expected_headers,
             json=expected_data,
-            data=None
+            data=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
     def test_delete_songs_from_playlist_raises_client_error_on_invalid_batch_size(self, spotify_client):
@@ -939,7 +987,8 @@ class TestSpotifyClient(object):
             params=expected_params,
             headers=expected_headers,
             data=None,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
         assert retrieved_response == expected_response
@@ -970,7 +1019,8 @@ class TestSpotifyClient(object):
             params=None,
             headers=expected_headers,
             data=expected_data,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
     def test_upload_playlist_image_raises_error_for_file_not_found(self, spotify_client):
@@ -1005,7 +1055,8 @@ class TestSpotifyClient(object):
             headers=expected_headers,
             params=expected_params,
             data=None,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
     @mock.patch('spotify_client.client.SpotifyClient._get_auth_access_token')
@@ -1032,7 +1083,8 @@ class TestSpotifyClient(object):
             headers=expected_headers,
             params=expected_params,
             data=None,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
     @mock.patch('spotify_client.client.SpotifyClient._get_auth_access_token')
@@ -1058,7 +1110,8 @@ class TestSpotifyClient(object):
             headers=expected_headers,
             params=expected_params,
             data=None,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
     def test_search_raises_client_exception_if_invalid_limit_passed(self, spotify_client):
@@ -1113,7 +1166,8 @@ class TestSpotifyClient(object):
             headers=expected_headers,
             params=expected_params,
             data=None,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
     @mock.patch('requests.request')
@@ -1170,7 +1224,8 @@ class TestSpotifyClient(object):
                 headers=expected_headers,
                 params=expected_params,
                 data=None,
-                json=None
+                json=None,
+                timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
             ),
             mock.call(
                 'GET',
@@ -1178,7 +1233,8 @@ class TestSpotifyClient(object):
                 headers=expected_headers,
                 params=expected_params,
                 data=None,
-                json=None
+                json=None,
+                timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
             )
         ]
 
@@ -1199,7 +1255,8 @@ class TestSpotifyClient(object):
             headers=expected_headers,
             params=expected_params,
             data=None,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
     @mock.patch('requests.request')
@@ -1218,7 +1275,8 @@ class TestSpotifyClient(object):
             headers=expected_headers,
             params=expected_params,
             data=None,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
     @mock.patch('spotify_client.client.SpotifyClient._get_auth_access_token')
@@ -1247,7 +1305,8 @@ class TestSpotifyClient(object):
             params=expected_params,
             headers=expected_headers,
             data=None,
-            json=None
+            json=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
     @mock.patch('requests.request')
@@ -1266,7 +1325,8 @@ class TestSpotifyClient(object):
             params=expected_params,
             headers=expected_headers,
             json=None,
-            data=None
+            data=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
     def test_get_code_from_spotify_uri(self, spotify_client):
