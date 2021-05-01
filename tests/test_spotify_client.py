@@ -1329,6 +1329,26 @@ class TestSpotifyClient(object):
             timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
+    @mock.patch('requests.request')
+    def test_add_track_to_user_queue(self, mock_request, spotify_client):
+        auth_code = 'test-user-auth-code'
+        song_uri = 'test-song-code'
+
+        expected_headers = {'Authorization': f'Bearer {auth_code}'}
+        expected_params = {'uri': song_uri}
+
+        spotify_client.add_track_to_user_queue(auth_code, song_uri)
+
+        mock_request.assert_called_once_with(
+            'POST',
+            'https://api.spotify.com/v1/me/player/queue',
+            params=expected_params,
+            headers=expected_headers,
+            json=None,
+            data=None,
+            timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
+        )
+
     def test_get_code_from_spotify_uri(self, spotify_client):
         song_code = 'spotify:track:19p0PEnGr6XtRqCYEI8Ucc'
         expected_code = '19p0PEnGr6XtRqCYEI8Ucc'

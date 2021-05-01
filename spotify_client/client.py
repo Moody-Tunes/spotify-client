@@ -836,3 +836,19 @@ class SpotifyClient(object):
             params={'ids': song_uri},
             headers={'Authorization': f'Bearer {auth_code}'}
         )
+
+    def add_track_to_user_queue(self, auth_code: str, song_uri: str) -> None:
+        """
+        Add a Spotify track to the authenticated user's queue.
+
+        Requires `user-modify-playback-state` OAuth scope from Spotify
+
+        :param auth_code: (str) Access token for user from Spotify
+        :param song_uri: (str) Spotify URI code for song to add to queue
+        """
+        self._make_spotify_request(
+            'POST',
+            f'{self.API_URL}/me/player/queue',
+            params={'uri': song_uri},
+            headers={'Authorization': f'Bearer {auth_code}'}
+        )
