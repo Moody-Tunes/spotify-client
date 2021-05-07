@@ -446,7 +446,9 @@ class SpotifyClient(object):
                     danceability = track_data.get('danceability')
 
                     # Skip tracks that are missing any of the attributes we're looking for
-                    if not any([valence, energy, danceability]):
+                    # Allow zero values for attributes because some tracks could have a value
+                    # of zero for their attribute value
+                    if not all([attr is not None for attr in [valence, energy, danceability]]):
                         continue
 
                     track.update({
