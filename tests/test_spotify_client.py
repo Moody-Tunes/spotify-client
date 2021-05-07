@@ -820,7 +820,7 @@ class TestSpotifyClient(object):
 
     @mock.patch('spotify_client.client.SpotifyClient._get_auth_access_token')
     @mock.patch('requests.request')
-    def test_get_attributes_for_track(self, mock_request, mock_get_auth_token, spotify_client):
+    def test_get_metadata_for_song(self, mock_request, mock_get_auth_token, spotify_client):
         mock_get_auth_token.return_value = 'test-auth-code'
         mock_song_code = 'spotify:track:1234567'
         mock_track_data = {
@@ -841,9 +841,11 @@ class TestSpotifyClient(object):
         mock_response.json.return_value = mock_track_data
         mock_request.return_value = mock_response
 
-        song_data = spotify_client.get_attributes_for_track(mock_song_code)
+        song = spotify_client.get_metadata_for_song(mock_song_code)
 
-        assert song_data == expected_song_data
+        assert song.code == expected_song_data['code']
+        assert song.name == expected_song_data['name']
+        assert song.artist == expected_song_data['artist']
 
     @mock.patch('requests.request')
     def test_get_users_playlist(self, mock_request, spotify_client):

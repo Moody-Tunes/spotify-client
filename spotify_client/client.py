@@ -535,16 +535,13 @@ class SpotifyClient(object):
 
         return self._make_spotify_request('GET', url, headers=headers)
 
-    def get_attributes_for_track(self, uri: str) -> dict:
+    def get_metadata_for_song(self, uri: str) -> Song:
         """
-        Fetch song metadata for a singular track
+        Fetch metadata for a singular song
 
         :param uri: (str) URI of song to search for on Spotify
 
-        :return: (dict)
-            - name (str)
-            - artist (str)
-            - code (str)
+        :return: (Song)
         """
         song_id = self.get_code_from_spotify_uri(uri)
         url = '{api_url}/tracks/{id}'.format(
@@ -554,11 +551,7 @@ class SpotifyClient(object):
 
         track = self._make_spotify_request('GET', url)
 
-        return {
-            'name': track['name'],
-            'artist': track['artists'][0]['name'],
-            'code': uri
-        }
+        return Song(track['name'], uri, track['artists'][0]['name'])
 
     def get_user_playlists(self, auth_code: str, spotify_user_id: str) -> dict:
         """
