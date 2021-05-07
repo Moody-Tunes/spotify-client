@@ -739,7 +739,7 @@ class TestSpotifyClient(object):
         mock_response.json.return_value = resp_data
         mock_request.return_value = mock_response
 
-        user_tokens = spotify_client.get_access_and_refresh_tokens(access_code, redirect_uri)
+        spotify_auth = spotify_client.get_access_and_refresh_tokens(access_code, redirect_uri)
 
         expected_request_data = {
             'grant_type': 'authorization_code',
@@ -763,7 +763,8 @@ class TestSpotifyClient(object):
             timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
-        assert user_tokens == expected_response_data
+        assert spotify_auth.access_token == expected_response_data['access_token']
+        assert spotify_auth.refresh_token == expected_response_data['refresh_token']
 
     @mock.patch('requests.request')
     def test_refresh_access_token(self, mock_request, spotify_client):

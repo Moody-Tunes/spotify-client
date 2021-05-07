@@ -36,3 +36,16 @@ class Song(object):
         self.valence = valence
         self.energy = energy
         self.danceability = danceability
+
+
+class SpotifyAuth(object):
+    """
+    Represents the data for Spotify authentication token
+
+    :ivar access_token: Access token for user on Spotify
+    :ivar refresh_token: Refresh token for user on Spotify
+    """
+
+    def __init__(self, access_token: str, refresh_token: str):
+        self.access_token = access_token
+        self.refresh_token = refresh_token

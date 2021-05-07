@@ -11,7 +11,7 @@ import requests
 
 from .config import Config
 from .exceptions import ClientException, ImproperlyConfigured, SpotifyException
-from .models import Playlist, Song
+from .models import Playlist, Song, SpotifyAuth
 
 
 logger = logging.getLogger(__name__)
@@ -475,7 +475,7 @@ class SpotifyClient(object):
 
         return '{url}?{params}'.format(url=self.USER_AUTH_URL, params=urlencode(params))
 
-    def get_access_and_refresh_tokens(self, code: str, redirect_url: str) -> dict:
+    def get_access_and_refresh_tokens(self, code: str, redirect_url: str) -> SpotifyAuth:
         """
         Make a request to the Spotify authorization endpoint to obtain the access and refresh tokens for a user after
         they have granted our application permission to Spotify on their behalf.
@@ -483,9 +483,7 @@ class SpotifyClient(object):
         :param code: (str) Authorization code returned from initial request for Spotify OAuth
         :param redirect_url: (str) URL to redirect to after OAuth confirmation
 
-        :return: (dict)
-            - access_token (str)
-            - refresh_token (str)
+        :return: (SpotifyAuth)
         """
         data = {
             'grant_type': 'authorization_code',  # Constant; From Spotify documentation
@@ -497,10 +495,7 @@ class SpotifyClient(object):
 
         response = self._make_spotify_request('POST', self.AUTH_URL, data=data, headers=headers)
 
-        return {
-            'access_token': response['access_token'],
-            'refresh_token': response['refresh_token']
-        }
+        return SpotifyAuth(response['access_token'], response['refresh_token'])
 
     def refresh_access_token(self, refresh_token: str) -> str:
         """
