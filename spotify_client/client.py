@@ -493,18 +493,18 @@ class SpotifyClient(object):
 
         headers = self._make_authorization_header()
 
-        response = self._make_spotify_request('POST', self.AUTH_URL, data=data, headers=headers)
+        response = self._make_spotify_request('POST', self.AUTH_URL, headers=headers, data=data)
 
         return SpotifyAuth(response['access_token'], response['refresh_token'])
 
-    def refresh_access_token(self, refresh_token: str) -> str:
+    def refresh_access_token(self, refresh_token: str) -> SpotifyAuth:
         """
         Refresh application on behalf of user given a refresh token. On a successful response, will return an
         access token for the user good for the timeout period for Spotify authentication (One hour.)
 
         :param refresh_token: (str) Refresh token for user from Spotify
 
-        :return: (str) New access token for user
+        :return: (SpotifyAuth)
         """
         data = {
             'grant_type': 'refresh_token',  # Constant; From Spotify documentation
@@ -515,7 +515,7 @@ class SpotifyClient(object):
 
         response = self._make_spotify_request('POST', self.AUTH_URL, headers=headers, data=data)
 
-        return response['access_token']
+        return SpotifyAuth(response['access_token'], refresh_token)
 
     def get_user_profile(self, access_token: str) -> dict:
         """
