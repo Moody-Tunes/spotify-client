@@ -49,3 +49,14 @@ class SpotifyAuth(object):
     def __init__(self, access_token: str, refresh_token: str):
         self.access_token = access_token
         self.refresh_token = refresh_token
+
+
+class UserProfile(object):
+    """
+    Represents a Spotify user profile data
+
+    :ivar user_id: Spotify User ID
+    """
+
+    def __init__(self, user_id: str):
+        self.user_id = user_id

@@ -817,7 +817,7 @@ class TestSpotifyClient(object):
             timeout=spotify_client.DEFAULT_TIMEOUT_VALUE,
         )
 
-        assert profile_data == mock_profile_data
+        assert profile_data.user_id == mock_profile_data['id']
 
     @mock.patch('spotify_client.client.SpotifyClient._get_auth_access_token')
     @mock.patch('requests.request')

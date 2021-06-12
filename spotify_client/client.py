@@ -11,7 +11,7 @@ import requests
 
 from .config import Config
 from .exceptions import ClientException, ImproperlyConfigured, SpotifyException
-from .models import Playlist, Song, SpotifyAuth
+from .models import Playlist, Song, SpotifyAuth, UserProfile
 
 
 logger = logging.getLogger(__name__)
@@ -517,18 +517,20 @@ class SpotifyClient(object):
 
         return SpotifyAuth(response['access_token'], refresh_token)
 
-    def get_user_profile(self, access_token: str) -> dict:
+    def get_user_profile(self, access_token: str) -> UserProfile:
         """
         Get data on the user from Spotify API /me endpoint
 
         :param access_token: (str) OAuth token from Spotify for the user
 
-        :return: (dict) Payload for the given user
+        :return: (UserProfile)
         """
         url = '{api_url}/me'.format(api_url=self.API_URL)
         headers = {'Authorization': 'Bearer {}'.format(access_token)}
 
-        return self._make_spotify_request('GET', url, headers=headers)
+        response = self._make_spotify_request('GET', url, headers=headers)
+
+        return UserProfile(response['id'])
 
     def get_metadata_for_song(self, uri: str) -> Song:
         """
